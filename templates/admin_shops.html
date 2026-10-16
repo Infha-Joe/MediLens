@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Manage Shops · MediLens{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold mb-2">Pharmacy Management</h1>
+  <p class="text-muted">Approve, block, or review registered pharmacies.</p>
+</div>
+
+<div class="card p-0 overflow-hidden border">
+  {% if not rows %}
+    <div class="p-8 text-center bg-bg">
+      <p class="text-muted m-0">No pharmacies have registered yet.</p>
+    </div>
+  {% else %}
+    <div class="table-container" style="border:none; box-shadow:none; border-radius:0">
+      <table>
+        <thead>
+          <tr><th>Shop Details</th><th>License</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td>
+              <div class="font-bold text-deep">{{ r.name }}</div>
+              <div class="text-xs text-muted">{{ r.address }}</div>
+              <div class="text-xs text-muted mt-1">{{ r.email }} &middot; {{ r.phone }}</div>
+            </td>
+            <td class="font-mono text-sm">{{ r.license_no }}</td>
+            <td>
+              <span class="badge badge-{% if r.status == 'approved' %}success{% elif r.status == 'blocked' %}danger{% else %}warning{% endif %}">{{ r.status }}</span>
+            </td>
+            <td>
+              <div class="flex gap-2">
+                {% if r.status != 'approved' %}
+                <form method="post" action="{{ url_for('admin.shop_action', uid=r.id, action='approve') }}">
+                  <button class="btn btn-outline btn-sm" style="color:var(--success); border-color:var(--success)">Approve</button>
+                </form>
+                {% endif %}
+                {% if r.status != 'blocked' %}
+                <form method="post" action="{{ url_for('admin.shop_action', uid=r.id, action='block') }}">
+                  <button class="btn btn-outline btn-danger btn-sm">Block</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

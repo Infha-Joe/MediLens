@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ shop.name }} Dashboard · MediLens{% endblock %}
+{% block content %}
+<div class="mb-8">
+  <div class="flex items-center gap-3 mb-2">
+    <div class="p-3 rounded-md text-white bg-primary"><i data-lucide="store" style="width:24px; height:24px"></i></div>
+    <div>
+      <h1 class="text-2xl font-bold m-0">{{ shop.name }}</h1>
+      <p class="text-sm text-muted m-0">{{ shop.address }}</p>
+    </div>
+  </div>
+</div>
+
+<div class="grid-3 mb-8">
+  {% for k, v in stats.items() %}
+  <div class="stat-card">
+    <div class="flex justify-between items-start">
+      <div class="stat-label">{{ k }}</div>
+      {% if 'New' in k %}<i data-lucide="bell" style="color:var(--primary)"></i>
+      {% elif 'Low' in k %}<i data-lucide="alert-circle" style="color:var(--danger)"></i>
+      {% else %}<i data-lucide="package" style="color:var(--success)"></i>{% endif %}
+    </div>
+    <div class="stat-value">{{ v }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="grid-2">
+  <div class="card bg-bg border">
+    <h3 class="font-semibold mb-2">Inventory Management</h3>
+    <p class="text-sm text-muted mb-4">Add or update medicines available in your pharmacy.</p>
+    <a href="{{ url_for('shop.stock') }}" class="btn"><i data-lucide="package-plus"></i> Manage Stock</a>
+  </div>
+</div>
+{% endblock %}

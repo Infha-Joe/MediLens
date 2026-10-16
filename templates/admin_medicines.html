@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Medicine Database · MediLens{% endblock %}
+{% block content %}
+<div class="mb-6 flex justify-between items-end flex-wrap gap-4">
+  <div>
+    <h1 class="text-2xl font-bold mb-2">Master Medicine DB</h1>
+    <p class="text-muted m-0">Central knowledge base for OCR and AI.</p>
+  </div>
+  <a href="{{ url_for('admin.medicine_new') }}" class="btn"><i data-lucide="plus"></i> Add Medicine</a>
+</div>
+
+<div class="card mb-6">
+  <form method="get" class="flex gap-2">
+    <input id="q" name="q" value="{{ q }}" placeholder="Search brand or salt..." style="flex:1; max-width: 400px">
+    <button type="submit" class="btn btn-outline"><i data-lucide="search"></i></button>
+  </form>
+</div>
+
+<div class="card p-0 overflow-hidden border">
+  <div class="table-container" style="border:none; box-shadow:none; border-radius:0">
+    <table>
+      <thead>
+        <tr><th>Medicine Details</th><th>MRP (₹)</th><th>Rx Req.</th><th style="width:150px">Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for m in meds %}
+        <tr>
+          <td>
+            <div class="font-bold text-deep">{{ m.brand }} {{ m.strength }}</div>
+            <div class="text-xs text-muted">{{ m.salt }}</div>
+          </td>
+          <td class="font-semibold">₹{{ m.mrp }}</td>
+          <td>{% if m.rx_required %}<span class="badge badge-warning">Yes</span>{% else %}<span class="badge badge-success">No</span>{% endif %}</td>
+          <td>
+            <div class="flex gap-2">
+              <a href="{{ url_for('admin.medicine_edit', mid=m._id) }}" class="btn btn-outline btn-sm"><i data-lucide="edit-2" style="width:14px"></i> Edit</a>
+              <form method="post" action="{{ url_for('admin.medicine_delete', mid=m._id) }}">
+                <button class="btn btn-outline btn-danger btn-sm" title="Delete"><i data-lucide="trash-2" style="width:14px"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

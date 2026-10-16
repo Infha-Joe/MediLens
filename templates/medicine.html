@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ med.brand }} · MediLens{% endblock %}
+{% block content %}
+<div class="mb-4">
+  <a href="javascript:history.back()" class="text-sm text-muted font-semibold"><i data-lucide="arrow-left" style="width:16px"></i> Back</a>
+</div>
+
+<div class="card mb-8">
+  <div class="flex gap-6" style="flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 250px; background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; aspect-ratio: 1/1; overflow: hidden; padding: 2.5rem;">
+      <img src="{{ url_for('static', filename=med.image) if med.image else url_for('static', filename='images/tablets.jpg') }}" onerror="this.src='{{ url_for('static', filename='images/tablets.jpg') }}'" alt="{{ med.brand }}" style="width: 100%; height: 100%; object-fit: contain;">
+    </div>
+    <div style="flex: 2; min-width: 300px;">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="badge badge-success">Available</span>
+        {% if med.rx_required %}<span class="badge badge-warning">Prescription Required</span>{% else %}<span class="badge badge-success">OTC</span>{% endif %}
+      </div>
+      <h1 class="text-2xl font-bold mb-1">{{ med.brand }} {{ med.strength }}</h1>
+      <p class="text-muted text-lg mb-2">{{ med.salt }}</p>
+      <div class="text-xl font-bold text-deep mb-4">MRP: ₹{{ med.mrp }}</div>
+      
+      <div class="mb-4">
+        <div class="text-sm font-semibold text-deep uppercase tracking-wide mb-1">Uses</div>
+        <p class="text-muted">{{ view.uses or med.uses or 'No information available.' }}</p>
+      </div>
+
+      <div class="mb-6">
+        <div class="text-sm font-semibold text-deep uppercase tracking-wide mb-1">Side Effects</div>
+        <p class="text-muted">{{ view.side_effects or med.side_effects or 'No information available.' }}</p>
+      </div>
+
+      <div class="flex gap-2" style="flex-wrap: wrap;">
+        <a href="{{ url_for('user.shops', mid=med._id) }}" class="btn" style="color: white !important;"><i data-lucide="map-pin"></i> Find Pharmacies</a>
+        <a href="{{ url_for('chat.chat_page', medicine_id=med._id) }}" class="btn btn-ai" style="color: white !important;"><i data-lucide="sparkles"></i> Ask MediLens AI</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if alts %}
+<h2 class="text-xl font-bold mb-4">Alternatives</h2>
+<div class="grid-3">
+  {% for a in alts %}
+  <a href="{{ url_for('user.medicine', mid=a._id) }}" class="card flex-col justify-between hover:shadow-md">
+    <div class="mb-4">
+      <h3 class="font-bold text-lg mb-1">{{ a.brand }} {{ a.strength }}</h3>
+      <div class="text-muted text-sm">{{ a.manufacturer }}</div>
+      <div class="mt-2 font-semibold">₹{{ a.mrp }} {% if a.saving %}<span class="text-success text-sm">({{ a.saving }}% cheaper)</span>{% endif %}</div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

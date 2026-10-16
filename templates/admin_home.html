@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard · MediLens{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold mb-2">Platform Overview</h1>
+  <p class="text-muted">Monitor system metrics and manage operations.</p>
+</div>
+
+<div class="grid-4 mb-8">
+  {% for k, v in stats.items() %}
+  <div class="stat-card">
+    <div class="flex justify-between items-start">
+      <div class="stat-label">{{ k }}</div>
+      <i data-lucide="activity" style="color:var(--primary)"></i>
+    </div>
+    <div class="stat-value">{{ v }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="grid-2">
+  <div class="card bg-bg border">
+    <h3 class="font-semibold mb-2">Pharmacy Approvals</h3>
+    <p class="text-sm text-muted mb-4">Review pending pharmacy registrations and manage active shops.</p>
+    <a href="{{ url_for('admin.shops') }}" class="btn"><i data-lucide="store"></i> Review Shops</a>
+  </div>
+  <div class="card bg-bg border">
+    <h3 class="font-semibold mb-2">Master Medicine DB</h3>
+    <p class="text-sm text-muted mb-4">Add or edit the core database of medicines and salts.</p>
+    <a href="{{ url_for('admin.medicines') }}" class="btn btn-outline"><i data-lucide="database"></i> Medicine DB</a>
+  </div>
+</div>
+{% endblock %}

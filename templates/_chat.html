@@ -1,0 +1,76 @@
+<section class="chat-container">
+  <div class="p-4" style="background: linear-gradient(90deg, var(--deep), var(--primary)); color: white; border-bottom: 1px solid rgba(255,255,255,0.1)">
+    <div class="flex items-center gap-2 font-semibold"><i data-lucide="sparkles" style="color: #a78bfa"></i> MediLens AI</div>
+    <div class="text-xs" style="color: rgba(255,255,255,0.8)">Your medicine assistant</div>
+  </div>
+  
+  {% if session.lang != 'en' and not translated %}
+    <div class="p-2 text-center" style="background: var(--bg); border-bottom: 1px solid var(--border)">
+      <button type="button" class="btn btn-outline btn-sm" id="tr">Translate page to {{ LANGS[session.lang] }}</button>
+    </div>
+  {% endif %}
+  
+  <div id="log" class="chat-log" aria-live="polite">
+    <div class="bubble bot">
+      Hi! I'm MediLens AI. You can ask me questions about {{ med.brand }} like its side effects or precautions.
+    </div>
+  </div>
+  
+  <div class="p-2 border-t" style="border-color: var(--border); background: var(--bg)">
+    <label class="checkbox-label text-xs ml-2"><input type="checkbox" id="speak"> Read replies aloud</label>
+  </div>
+  
+  <div class="chat-input-area">
+    <input id="msg" maxlength="500" placeholder="Ask a question..." aria-label="Your question" style="border-radius: var(--radius-full)">
+    <button id="mic" type="button" class="btn btn-outline" style="border-radius: 50%; padding: 0.5rem; border: none; background: #f1f5f9" hidden aria-label="Speak">
+      <i data-lucide="mic"></i>
+    </button>
+    <button id="send" type="button" class="btn btn-ai" style="border-radius: 50%; padding: 0.5rem">
+      <i data-lucide="send" style="margin-left: 2px"></i>
+    </button>
+  </div>
+</section>
+
+<script>
+(()=>{
+const LANG="{{ session.lang or 'en' }}",VL={en:'en-IN',ta:'ta-IN',hi:'hi-IN'}[LANG]||'en-IN';
+const log=document.getElementById('log'),msg=document.getElementById('msg'),speak=document.getElementById('speak');
+const post=(u,b)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF':window.CSRF},body:JSON.stringify(b||{})}).then(r=>r.json());
+function add(role,text){
+  const d=document.createElement('div');
+  d.className='bubble '+role;
+  d.textContent=text;
+  log.appendChild(d);
+  log.scrollTop=log.scrollHeight;
+  return d;
+}
+fetch("{{ url_for('chat.history', mid=med._id) }}").then(r=>r.json()).then(d=>d.messages.forEach(m=>add(m.role==='user'?'user':'bot',m.content)));
+function send(){
+  const t=msg.value.trim();if(!t)return;msg.value='';add('user',t);const w=add('bot','Thinking...');
+  post("{{ url_for('chat.ask', mid=med._id) }}",{message:t}).then(d=>{
+    w.textContent=d.reply||d.error||'Something went wrong.';
+    if(d.reply&&speak.checked&&window.speechSynthesis){const u=new SpeechSynthesisUtterance(d.reply);u.lang=VL;speechSynthesis.speak(u);}
+  }).catch(()=>{w.textContent='Could not reach the server. Check your connection.';});
+}
+document.getElementById('send').onclick=send;
+msg.addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition,mic=document.getElementById('mic');
+if(SR){
+  mic.hidden=false;
+  mic.onclick=()=>{
+    const r=new SR();r.lang=VL;
+    r.onresult=e=>{msg.value=e.results[0][0].transcript;send();};
+    r.onerror=()=>add('bot','Could not hear you. Allow microphone access and try again.');
+    mic.innerHTML='<i data-lucide="loader-2" class="lucide-spin" style="color:var(--danger)"></i>';
+    lucide.createIcons();
+    r.onend=()=>{
+      mic.innerHTML='<i data-lucide="mic"></i>';
+      lucide.createIcons();
+    };
+    r.start();
+  };
+}
+const tr=document.getElementById('tr');
+if(tr)tr.onclick=()=>{tr.disabled=true;tr.textContent='Translating...';post("{{ url_for('chat.translate', mid=med._id) }}").then(d=>{if(d.ok)location.reload();else{tr.textContent=d.error;}});};
+})();
+</script>

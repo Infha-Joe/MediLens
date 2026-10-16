@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Register · MediLens{% endblock %}
+{% block auth_content %}
+<div class="text-center mb-6">
+  <h2 class="text-2xl font-semibold text-deep mb-2">Create your account</h2>
+  <p class="text-muted">Join the smarter healthcare platform</p>
+</div>
+<form method="post" id="regform">
+  <div class="form-group">
+    <label for="role">I am a</label>
+    <select id="role" name="role">
+      <option value="user">Customer</option>
+      <option value="shop">Pharmacy / Medical Shop</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="name">Full Name / Contact Name</label>
+    <input id="name" name="name" required placeholder="John Doe">
+  </div>
+  <div class="form-group">
+    <label for="email">Email Address</label>
+    <input id="email" name="email" type="email" required autocomplete="email" placeholder="john@example.com">
+  </div>
+  <div class="form-group">
+    <label for="password">Password (8+ characters)</label>
+    <input id="password" name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="••••••••">
+  </div>
+
+  <div id="shopfields" hidden class="mt-6 pt-6" style="border-top: 1px solid var(--border)">
+    <h3 class="text-lg mb-4">Pharmacy Details</h3>
+    <div class="form-group">
+      <label for="shop_name">Shop Name</label>
+      <input id="shop_name" name="shop_name" placeholder="City Pharmacy">
+    </div>
+    <div class="form-group">
+      <label for="address">Full Address</label>
+      <textarea id="address" name="address" rows="2" placeholder="123 Main St..."></textarea>
+    </div>
+    <div class="form-group">
+      <label for="city">City</label>
+      <select id="city" name="city">
+        <option value="Tirunelveli">Tirunelveli</option>
+        <option value="Thoothukudi">Thoothukudi</option>
+        <option value="Madurai">Madurai</option>
+        <option value="Kovilpatti">Kovilpatti</option>
+        <option value="Coimbatore">Coimbatore</option>
+      </select>
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label for="license_no">Drug License Number</label>
+        <input id="license_no" name="license_no" placeholder="DL-12345">
+      </div>
+      <div class="form-group">
+        <label for="phone">Contact Phone</label>
+        <input id="phone" name="phone" type="tel" placeholder="+91...">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="hours">Opening Hours</label>
+      <input id="hours" name="hours" placeholder="9:00 AM - 9:00 PM">
+    </div>
+
+    
+    <div class="card bg-bg mt-4">
+      <div class="flex items-center gap-2 mb-2 font-semibold"><i data-lucide="map-pin"></i> Shop Location</div>
+      <p class="text-sm text-muted mb-4">Pin your exact location so customers can find you on the map.</p>
+      <input type="hidden" name="lat" id="lat"><input type="hidden" name="lng" id="lng">
+      <button type="button" class="btn btn-outline w-full" id="geo"><i data-lucide="crosshair"></i> Use My Current Location</button>
+      <p class="text-sm mt-2 font-semibold" id="geostatus" style="color: var(--warning)">Location not set.</p>
+    </div>
+  </div>
+  <button type="submit" class="btn w-full mt-6">Create Account <i data-lucide="user-plus" style="width:18px"></i></button>
+</form>
+<p class="text-center mt-6 text-sm text-muted">Already have an account? <a href="{{ url_for('auth.login') }}" class="font-semibold">Log in</a></p>
+
+<script>
+const role=document.getElementById('role'),box=document.getElementById('shopfields');
+role.onchange=()=>{box.hidden=role.value!=='shop';};
+document.getElementById('geo').onclick=()=>{
+  const s=document.getElementById('geostatus');
+  s.innerHTML = '<i data-lucide="loader-2" class="lucide-spin"></i> Finding location...';
+  lucide.createIcons();
+  if(!navigator.geolocation){s.innerHTML='<span style="color:var(--danger)">Browser does not support location.</span>';return;}
+  navigator.geolocation.getCurrentPosition(p=>{
+    document.getElementById('lat').value=p.coords.latitude;
+    document.getElementById('lng').value=p.coords.longitude;
+    s.innerHTML='<span style="color:var(--success)"><i data-lucide="check-circle"></i> Location saved successfully!</span>';
+    lucide.createIcons();
+  },()=>{s.innerHTML='<span style="color:var(--danger)">Location blocked. Allow access and try again.</span>';});
+};
+</script>
+{% endblock %}

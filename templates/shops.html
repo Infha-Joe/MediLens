@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Find Pharmacies · MediLens{% endblock %}
+{% block content %}
+<div class="mb-6 flex justify-between items-end flex-wrap gap-4">
+  <div>
+    <h1 class="text-2xl font-bold mb-2">Find Pharmacies</h1>
+    <p class="text-muted m-0">Check availability in local pharmacies.</p>
+  </div>
+</div>
+
+<div class="card mb-8">
+  <div class="flex items-center gap-4 flex-wrap">
+    <div class="form-group mb-0" style="flex: 1; min-width: 250px;">
+      <label for="city" class="font-bold text-sm">City</label>
+      <select id="city" class="w-full">
+        <option value="All Cities">All Cities</option>
+        {% for city in cities %}
+        <option value="{{ city }}">{{ city }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="form-group mb-0" style="flex: 1; min-width: 250px;">
+      <label for="mid" class="font-bold text-sm">Medicine</label>
+      <select id="mid" class="w-full">
+        <option value="">Select a Medicine...</option>
+        {% for m in all_medicines %}
+        <option value="{{ m._id }}" {% if med and med._id == m._id %}selected{% endif %}>{{ m.brand }} {{ m.strength }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="flex items-center gap-4 pt-6">
+      <label class="checkbox-label font-bold text-sm"><input type="checkbox" id="open"> Open Now</label>
+    </div>
+  </div>
+</div>
+
+<div id="status" class="toast info" style="display:none; margin-bottom:1rem;"><i data-lucide="info"></i> <span>Searching...</span></div>
+
+<div class="grid-3" id="results">
+  <!-- Results populate here -->
+</div>
+
+<script>
+(()=>{
+const DATA="{{ url_for('user.shops_data') }}";
+const $ = id => document.getElementById(id);
+const stat = document.querySelector('#status span'), statBox = $('status');
+const el = (t, cls, html) => { const e = document.createElement(t); if(cls) e.className=cls; if(html) e.innerHTML=html; return e; };
+
+function msg(text, type='info') {
+  statBox.style.display='flex';
+  statBox.className='toast '+type;
+  statBox.style.position='static'; statBox.style.animation='none'; statBox.style.marginBottom='1rem';
+  stat.textContent=text;
+  lucide.createIcons();
+}
+
+function load() {
+  const city = $('city').value;
+  const mid = $('mid').value;
+  const open_now = $('open').checked ? 1 : 0;
+  
+  if (!mid) {
+      $('results').innerHTML = '<div class="card text-center text-muted" style="grid-column: 1/-1;">Please select a medicine to see availability.</div>';
+      return;
+  }
+  
+  const q = new URLSearchParams({mid: mid, city: city, open_now: open_now});
+  msg('Loading pharmacies...','info');
+  
+  fetch(DATA+'?'+q).then(r=>r.json()).then(d=>{
+    $('results').innerHTML='';
+    
+    if(d.error){ msg(d.error,'error'); return; }
+    
+    if(d.shops.length === 0) {
+      msg('No pharmacies found for this city.','warning');
+      return;
+    }
+    
+    statBox.style.display = 'none'; // Hide message on success
+    
+    d.shops.forEach(s => {
+      const c = el('div', 'card flex-col justify-between hover:shadow-md cursor-pointer', '');
+      c.style.cursor = 'pointer';
+      c.onclick = () => window.location.href = '/user/pharmacy/' + s.id + '?city=' + encodeURIComponent(city) + '&mid=' + encodeURIComponent(mid);
+      
+      let html = `<div class="mb-4">
+        <div class="flex justify-between items-start mb-2">
+          <h4 class="font-bold m-0 text-lg">${s.name}</h4>
+          <span class="badge badge-primary font-bold">₹${s.price}</span>
+        </div>
+        <div class="text-xs text-muted mb-3 flex items-center gap-1"><i data-lucide="map-pin" style="width:14px"></i> ${s.address}</div>
+        `;
+        
+      let state = s.open === true ? '<span class="text-success font-bold">Open</span>' : s.open === false ? '<span class="text-danger font-bold">Closed</span>' : '';
+      
+      html += `<div class="text-xs mt-1 flex gap-2 items-center flex-wrap">${state} &middot; <span class="font-bold text-deep">${s.qty} in stock</span></div>`;
+      html += `</div>`;
+      html += `<div class="mt-2 text-right text-sm font-bold text-primary">View Details &rarr;</div>`;
+      
+      c.innerHTML = html;
+      $('results').appendChild(c);
+    });
+    lucide.createIcons();
+  }).catch(()=>{ msg('Could not load shops. Check your connection.','error'); });
+}
+
+$('city').addEventListener('change', load);
+$('mid').addEventListener('change', load);
+$('open').addEventListener('change', load);
+
+// Initial load
+load();
+})();
+</script>
+{% endblock %}

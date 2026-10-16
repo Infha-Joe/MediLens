@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Stock · MediLens{% endblock %}
+{% block content %}
+<div class="mb-6 flex justify-between items-center flex-wrap gap-4">
+  <div>
+    <h1 class="text-2xl font-bold mb-2">Inventory Management</h1>
+    <p class="text-muted m-0">Manage the medicines available in your pharmacy.</p>
+  </div>
+</div>
+
+<div class="card mb-8">
+  <h3 class="font-semibold mb-4 border-b pb-2" style="border-color: var(--border)"><i data-lucide="plus-circle" style="color:var(--primary); width:18px; display:inline-block; vertical-align:-3px"></i> Add New Stock</h3>
+  <form method="post" action="{{ url_for('shop.stock_add') }}" class="flex items-end gap-4 flex-wrap">
+    <div class="form-group mb-0" style="flex:2; min-width: 250px">
+      <label for="medicine_id">Select Medicine from Database</label>
+      <select id="medicine_id" name="medicine_id" required>
+        <option value="" disabled selected>Search medicine...</option>
+        {% for m in meds %}
+          <option value="{{ m._id }}">{{ m.brand }} {{ m.strength }} ({{ m.salt|truncate(20) }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group mb-0" style="flex:1; min-width: 120px">
+      <label for="price">Price (₹)</label>
+      <input id="price" name="price" type="number" step="0.01" min="0.01" placeholder="e.g. 50.00" required>
+    </div>
+    <div class="form-group mb-0" style="flex:1; min-width: 100px">
+      <label for="qty">Quantity</label>
+      <input id="qty" name="qty" type="number" min="0" value="10" required>
+    </div>
+    <button type="submit" class="btn" style="height: 46px">Add Stock</button>
+  </form>
+</div>
+
+<div class="card p-0 overflow-hidden border">
+  {% if items %}
+  <div class="table-container" style="border:none; box-shadow:none; border-radius:0">
+    <table>
+      <thead>
+        <tr><th>Medicine Details</th><th>Price (₹)</th><th>In Stock</th><th style="width:100px">Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for i in items %}
+        <tr>
+          <td>
+            <div class="font-bold text-deep">{{ i.med.brand }} {{ i.med.strength }}</div>
+            <div class="text-xs text-muted">MRP ₹{{ i.med.mrp }} &middot; {{ i.med.salt|truncate(40) }}</div>
+          </td>
+          <td colspan="2">
+            <form method="post" action="{{ url_for('shop.stock_update', iid=i.inv._id) }}" class="flex gap-2">
+              <input name="price" type="number" step="0.01" min="0.01" value="{{ i.inv.price }}" aria-label="Price" style="width:100px"> 
+              <input name="qty" type="number" min="0" value="{{ i.inv.qty }}" aria-label="Quantity" style="width:80px"> 
+              <button class="btn btn-outline btn-sm">Save</button>
+            </form>
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('shop.stock_delete', iid=i.inv._id) }}">
+              <button class="btn btn-danger btn-outline btn-sm" title="Remove Item"><i data-lucide="trash-2" style="width:16px"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="p-8 text-center bg-bg">
+    <i data-lucide="package-x" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 1rem"></i>
+    <p class="text-muted m-0">Your inventory is empty. Add your first medicine above.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

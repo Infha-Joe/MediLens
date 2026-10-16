@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Your orders · MediLens{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold mb-2">Order History</h1>
+  <p class="text-muted">Track and manage your medicine orders.</p>
+</div>
+
+{% if not rows %}
+<div class="card text-center p-8 bg-bg">
+  <i data-lucide="shopping-bag" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 1rem"></i>
+  <h3 class="text-lg font-semibold mb-2">No orders yet</h3>
+  <p class="text-muted mb-4">Find a medicine and choose a pharmacy to place your first order.</p>
+  <a href="{{ url_for('user.search') }}" class="btn">Explore Medicines</a>
+</div>
+{% else %}
+<div class="grid-2">
+  {% for o in rows %}
+  <div class="card flex-col justify-between">
+    <div>
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h3 class="font-bold text-lg m-0">{{ o.med.brand }} {{ o.med.strength }}</h3>
+          <div class="text-sm text-muted">Qty: {{ o.qty }} &middot; Total: <strong class="text-deep">₹{{ o.total }}</strong></div>
+        </div>
+        <span class="badge badge-{% if o.status=='completed' %}success{% elif o.status=='cancelled' %}danger{% elif o.status=='placed' %}warning{% else %}primary{% endif %}">{{ o.status }}</span>
+      </div>
+      
+      <div class="p-3 mb-4 rounded-md text-sm bg-bg border" style="border-color: var(--border)">
+        <div class="font-semibold mb-1"><i data-lucide="store" style="width:14px; margin-right:4px"></i> {{ o.shop.name }}</div>
+        <div class="text-muted flex justify-between">
+          <span><i data-lucide="package" style="width:14px"></i> {{ o.fulfilment|capitalize }}</span>
+          <span>{{ o.created_at.strftime('%d %b, %H:%M') }}</span>
+        </div>
+      </div>
+    </div>
+    
+    {% if o.status == 'placed' %}
+    <form method="post" action="{{ url_for('user.order_cancel', oid=o._id) }}">
+      <button class="btn btn-outline btn-danger w-full btn-sm">Cancel Order</button>
+    </form>
+    {% else %}
+      <div class="w-full text-center text-xs text-muted uppercase font-semibold tracking-wider">Order locked</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

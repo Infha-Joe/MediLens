@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Orders · MediLens{% endblock %}
+{% block content %}
+<div class="mb-6 flex justify-between items-end flex-wrap gap-4">
+  <div>
+    <h1 class="text-2xl font-bold mb-2">Customer Orders</h1>
+    <p class="text-muted m-0">Process and fulfill incoming orders.</p>
+  </div>
+</div>
+
+{% if not rows %}
+<div class="card text-center p-8 bg-bg">
+  <i data-lucide="shopping-cart" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 1rem"></i>
+  <h3 class="text-lg font-semibold mb-2">No orders yet</h3>
+  <p class="text-muted m-0">When customers place orders, they will appear here.</p>
+</div>
+{% else %}
+<div class="grid-2">
+  {% for o in rows %}
+  <div class="card flex-col justify-between" style="{% if o.status == 'placed' %}border-left: 4px solid var(--warning){% endif %}">
+    <div>
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h3 class="font-bold text-lg m-0">{{ o.med.brand }} {{ o.med.strength }} <span class="text-muted text-sm">&times; {{ o.qty }}</span></h3>
+          <div class="text-sm font-semibold text-primary">₹{{ o.total }}</div>
+        </div>
+        <span class="badge badge-{% if o.status=='completed' %}success{% elif o.status=='cancelled' or o.status=='rejected' %}danger{% elif o.status=='placed' %}warning{% else %}primary{% endif %}">{{ o.status }}</span>
+      </div>
+      
+      <div class="p-3 mb-4 rounded-md text-sm bg-bg border" style="border-color: var(--border)">
+        <div class="font-semibold mb-1"><i data-lucide="user" style="width:14px; margin-right:4px"></i> {{ o.customer.name }}</div>
+        <div class="text-muted mb-2">
+          <i data-lucide="truck" style="width:14px; margin-right:4px"></i> {{ o.fulfilment|capitalize }} 
+          {% if o.address %}<br><span class="ml-5">{{ o.address }}</span>{% endif %}
+        </div>
+        <div class="text-xs text-muted border-t pt-2 mt-2" style="border-color:var(--border)">{{ o.created_at.strftime('%d %b, %H:%M') }} UTC</div>
+      </div>
+      
+      {% if o.prescription %}
+      <a href="{{ url_for('shop.prescription', name=o.prescription) }}" target="_blank" class="flex items-center gap-2 p-2 mb-4 rounded border text-sm font-semibold" style="background:#fef3c7; border-color:#fde68a; color:#b45309; text-decoration:none">
+        <i data-lucide="file-text" style="width:16px"></i> View Prescription
+      </a>
+      {% endif %}
+    </div>
+    
+    <div class="flex gap-2 border-t pt-4 mt-auto" style="border-color:var(--border)">
+      {% for act, from, label in [('accept','placed','Accept'),('reject','placed','Reject'),('ready','accepted','Mark Ready'),('complete','ready','Complete')] %}
+        {% if o.status == from %}
+        <form method="post" action="{{ url_for('shop.order_action', oid=o._id, action=act) }}" style="flex:1">
+          <button class="btn {% if act == 'reject' %}btn-danger btn-outline{% elif act == 'complete' %}btn-outline{% endif %} w-full btn-sm">
+            {{ label }}
+          </button>
+        </form>
+        {% endif %}
+      {% endfor %}
+      
+      {% if o.status not in ('placed','accepted','ready') %}
+        <div class="w-full text-center text-xs text-muted uppercase font-semibold tracking-wider">Order Closed</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

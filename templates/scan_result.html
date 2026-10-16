@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Confirm medicine · MediLens{% endblock %}
+{% block content %}
+<div class="card text-center mb-8 p-6">
+  <div class="inline-flex p-3 mb-4 rounded-full" style="background: #eff6ff">
+    <i data-lucide="check-circle" style="color: var(--primary); width: 32px; height: 32px"></i>
+  </div>
+  <h1 class="text-2xl font-bold mb-2">Identify your medicine</h1>
+  {% if found %}
+    <p class="text-muted max-w-lg mx-auto">We found multiple matches from your photo. Please select the correct medicine.</p>
+  {% else %}
+    <p class="text-danger max-w-lg mx-auto">We couldn't confidently identify any medicine from this image. Please try searching manually.</p>
+  {% endif %}
+</div>
+
+{% if found %}
+  <div class="grid-3 mb-8">
+    {% for score, m in found %}
+      <div class="card flex-col justify-between">
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="badge badge-primary">{{ (score * 100)|round|int }}% Match</span>
+            {% if m.rx_required %}<span class="badge badge-warning">Rx</span>{% endif %}
+          </div>
+          <h3 class="font-bold text-lg m-0">{{ m.brand }} {{ m.strength }}</h3>
+          <p class="text-sm text-muted">{{ m.salt }}</p>
+        </div>
+        <a href="{{ url_for('user.medicine', mid=m._id, src='scan', photo=photo) }}" class="btn btn-outline w-full">View Details</a>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="card bg-bg">
+  <h3 class="font-semibold mb-2">Search Manually Instead</h3>
+  <form method="get" action="{{ url_for('user.search') }}" class="flex gap-2">
+    <input id="q" name="q" placeholder="e.g. Paracetamol" required style="flex:1; max-width: 400px">
+    <button type="submit" class="btn"><i data-lucide="search"></i> Search</button>
+  </form>
+</div>
+{% endblock %}

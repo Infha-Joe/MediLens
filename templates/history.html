@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}History · MediLens{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold mb-2">Activity History</h1>
+  <p class="text-muted">Medicines you have searched or scanned recently.</p>
+</div>
+
+{% if not rows %}
+<div class="card text-center p-8 bg-bg">
+  <i data-lucide="history" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 1rem"></i>
+  <h3 class="text-lg font-semibold mb-2">No history yet</h3>
+  <p class="text-muted mb-4">Start by scanning or searching for a medicine.</p>
+  <a href="{{ url_for('user.home') }}" class="btn">Go to Dashboard</a>
+</div>
+{% else %}
+<div class="flex-col gap-4 max-w-lg">
+  {% for r in rows %}
+  <div class="card flex items-center justify-between p-4 hover:shadow-md transition-all">
+    <div class="flex items-center gap-4">
+      {% if r.photo %}
+        <img src="{{ url_for('user.photo', name=r.photo) }}" alt="Scanned" style="width: 50px; height: 50px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border)">
+      {% else %}
+        <div class="flex items-center justify-center bg-bg" style="width: 50px; height: 50px; border-radius: var(--radius-sm); border: 1px solid var(--border)">
+          <i data-lucide="search" style="color: var(--text-muted)"></i>
+        </div>
+      {% endif %}
+      <div>
+        <a href="{{ url_for('user.medicine', mid=r.med._id) }}" class="font-bold text-deep hover:text-primary text-lg" style="text-decoration:none">{{ r.med.brand }} {{ r.med.strength }}</a>
+        <div class="text-xs text-muted flex items-center gap-2 mt-1">
+          <span class="badge {{ 'badge-ai' if r.source == 'scan' else 'badge-primary' }}" style="font-size:0.6rem">{{ 'OCR Scan' if r.source == 'scan' else 'Search' }}</span>
+          <span>{{ r.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+        </div>
+      </div>
+    </div>
+    <a href="{{ url_for('user.medicine', mid=r.med._id) }}" class="btn btn-outline btn-sm"><i data-lucide="chevron-right"></i></a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

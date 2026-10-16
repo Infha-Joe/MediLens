@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}MediLens{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+{% if not session.role and request.endpoint in ('auth.login', 'auth.register', 'index') %}
+  <!-- Auth Layout -->
+  <div class="auth-layout">
+    <div class="auth-left">
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; font-weight: 700; font-size: 1.5rem;">
+        <i data-lucide="scan-line"></i> MediLens
+      </div>
+      <h1>Smarter medicine discovery, powered by AI.</h1>
+      <p class="mb-8">Your complete digital healthcare assistant for understanding, finding, and learning about medicines safely.</p>
+      <div class="flex-col gap-4">
+        <div class="flex items-center gap-2"><i data-lucide="check-circle-2" style="color:#a78bfa"></i> Scan medicines instantly</div>
+        <div class="flex items-center gap-2"><i data-lucide="check-circle-2" style="color:#a78bfa"></i> Ask the AI medicine assistant</div>
+        <div class="flex items-center gap-2"><i data-lucide="check-circle-2" style="color:#a78bfa"></i> Find nearby pharmacies</div>
+        <div class="flex items-center gap-2"><i data-lucide="check-circle-2" style="color:#a78bfa"></i> Check pharmacy availability</div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-card">
+        {% block auth_content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+  <!-- Flashes for auth -->
+  <div class="toast-container">
+    {% for cat, msg in get_flashed_messages(with_categories=true) %}
+      <div class="toast {{ cat }}"><i data-lucide="info"></i> {{ msg }}</div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <!-- App Layout -->
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a class="brand" href="/"><i data-lucide="scan-line"></i> <span>Medi</span>Lens</a>
+      </div>
+      <nav class="sidebar-nav">
+        {% if session.role == 'user' %}
+          <a href="{{ url_for('user.home') }}" class="nav-item {{ 'active' if request.endpoint == 'user.home' }}"><i data-lucide="layout-dashboard"></i> {{ _('Dashboard') }}</a>
+          <a href="{{ url_for('user.search') }}" class="nav-item {{ 'active' if request.endpoint == 'user.search' }}"><i data-lucide="search"></i> {{ _('Search Medicines') }}</a>
+          <a href="{{ url_for('user.history') }}" class="nav-item {{ 'active' if request.endpoint == 'user.history' }}"><i data-lucide="history"></i> {{ _('History') }}</a>
+          
+          <a href="{{ url_for('chat.chat_page') }}" class="nav-item {{ 'active' if request.endpoint and 'chat_page' in request.endpoint }} mt-2" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), transparent); color: var(--ai-accent); border: 1px solid rgba(124, 58, 237, 0.2)">
+            <i data-lucide="sparkles"></i> {{ _('MediLens AI') }}
+          </a>
+          
+          <div style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; padding: 0 1rem;">{{ _('Language') }}</div>
+          <form method="post" id="langform" class="px-4">
+            <select id="lang" class="w-full text-sm" onchange="this.form.action='{{ url_for('chat.set_lang', code='x') }}'.slice(0,-1)+this.value;this.form.submit()" style="padding: 0.5rem; border: none; background: var(--bg); border-radius: 4px;">
+              {% for code, name in LANGS.items() %}
+                <option value="{{ code }}" {{ 'selected' if session.lang == code }}>{{ name }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        {% endif %}
+        
+        {% if session.role == 'shop' %}
+          <a href="{{ url_for('shop.home') }}" class="nav-item {{ 'active' if request.endpoint == 'shop.home' }}"><i data-lucide="layout-dashboard"></i> {{ _('Dashboard') }}</a>
+          <a href="{{ url_for('shop.stock') }}" class="nav-item {{ 'active' if 'stock' in request.endpoint }}"><i data-lucide="package"></i> Inventory</a>
+          <a href="{{ url_for('shop.profile') }}" class="nav-item {{ 'active' if request.endpoint == 'shop.profile' }}"><i data-lucide="store"></i> Shop Profile</a>
+        {% endif %}
+        
+        {% if session.role == 'admin' %}
+          <a href="{{ url_for('admin.home') }}" class="nav-item {{ 'active' if request.endpoint == 'admin.home' }}"><i data-lucide="layout-dashboard"></i> {{ _('Dashboard') }}</a>
+          <a href="{{ url_for('admin.shops') }}" class="nav-item {{ 'active' if 'shop' in request.endpoint }}"><i data-lucide="store"></i> {{ _('Pharmacies') }}</a>
+          <a href="{{ url_for('admin.medicines') }}" class="nav-item {{ 'active' if 'medicine' in request.endpoint }}"><i data-lucide="pill"></i> {{ _('Medicines') }}</a>
+          <a href="{{ url_for('admin.users') }}" class="nav-item {{ 'active' if 'user' in request.endpoint }}"><i data-lucide="users"></i> {{ _('Customers') }}</a>
+          <a href="{{ url_for('admin.health_tips') }}" class="nav-item {{ 'active' if 'health_tip' in request.endpoint }}"><i data-lucide="heart-pulse"></i> {{ _('Health Tips') }}</a>
+        {% endif %}
+      </nav>
+      <div class="nav-footer">
+        <a href="{{ url_for('auth.logout') }}" class="nav-item"><i data-lucide="log-out"></i> {{ _('Log out') }}</a>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <div class="topbar">
+        <button class="menu-btn" id="menuBtn"><i data-lucide="menu"></i></button>
+        <div class="flex items-center gap-2 font-semibold">
+          <i data-lucide="user-circle"></i> {{ session.name }} ({{ session.role|capitalize }})
+        </div>
+      </div>
+      
+      <div class="toast-container">
+        {% for cat, msg in get_flashed_messages(with_categories=true) %}
+          <div class="toast {{ cat }}"><i data-lucide="info"></i> {{ msg }}</div>
+        {% endfor %}
+      </div>
+      
+      <div class="mt-4">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<script>
+  lucide.createIcons();
+  window.CSRF="{{ csrf }}";
+  document.querySelectorAll('form[method=post]').forEach(f=>{
+    if(!f.querySelector('input[name=csrf]')){
+      const i=document.createElement('input');i.type='hidden';i.name='csrf';i.value=window.CSRF;f.appendChild(i);
+    }
+  });
+  const menuBtn = document.getElementById('menuBtn');
+  const sidebar = document.getElementById('sidebar');
+  if(menuBtn && sidebar) {
+    menuBtn.onclick = () => sidebar.classList.toggle('open');
+  }
+</script>
+</body>
+</html>

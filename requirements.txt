@@ -1,0 +1,8 @@
+flask
+pymongo
+werkzeug
+python-dotenv
+groq
+pytesseract
+Pillow
+tzdata

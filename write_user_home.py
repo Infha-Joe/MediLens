@@ -1,0 +1,192 @@
+import os
+
+user_home_html = """{% extends "base.html" %}
+{% block title %}Dashboard · MediLens{% endblock %}
+{% block content %}
+<style>
+  /* Marquee container */
+  .health-tips-marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+    position: relative;
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+    border-radius: var(--radius-lg);
+    background: #f8fafc;
+    border: 1px solid var(--border);
+  }
+  
+  /* Inner scrolling track */
+  .marquee-track {
+    display: inline-flex;
+    gap: 1.5rem;
+    animation: scroll-left 30s linear infinite;
+  }
+  
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes scroll-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); } /* Assuming we duplicate the content to make it seamless */
+  }
+
+  .health-tip-card {
+    display: inline-flex;
+    flex-direction: column;
+    width: 300px;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    white-space: normal; /* allow text wrapping inside the card */
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+  }
+  .health-tip-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .ht-image-container {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: #e2e8f0;
+  }
+
+  .ht-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>
+
+<div class="mb-6">
+  <h1 class="text-2xl font-bold">Good morning, {{ session.name }}</h1>
+  <p class="text-lg text-muted">How can MediLens help you today?</p>
+</div>
+
+<!-- HEALTH TIPS SCROLLING MARQUEE -->
+{% if all_tips %}
+<div class="health-tips-marquee">
+  <div class="marquee-track">
+    <!-- Render twice for seamless loop -->
+    {% for tip in all_tips %}
+    <div class="health-tip-card">
+      <div class="ht-image-container">
+        <img src="{{ tip.image }}" alt="{{ tip.title }}" onerror="this.src='{{ url_for('static', filename='images/tablets.jpg') }}'">
+      </div>
+      <div class="p-4 flex-col gap-2 h-full">
+        <div class="flex items-center gap-2">
+           <i data-lucide="lightbulb" style="color:var(--warning); width:16px"></i> 
+           <span class="badge badge-success" style="font-size:0.6rem">{{ tip.category }}</span>
+        </div>
+        <h3 class="font-bold text-md leading-tight">{{ tip.title }}</h3>
+        <p class="text-xs text-muted mb-0 line-clamp-3" style="display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">{{ tip.text }}</p>
+      </div>
+    </div>
+    {% endfor %}
+    
+    <!-- Duplicate set for seamless scrolling -->
+    {% for tip in all_tips %}
+    <div class="health-tip-card">
+      <div class="ht-image-container">
+        <img src="{{ tip.image }}" alt="{{ tip.title }}" onerror="this.src='{{ url_for('static', filename='images/tablets.jpg') }}'">
+      </div>
+      <div class="p-4 flex-col gap-2 h-full">
+        <div class="flex items-center gap-2">
+           <i data-lucide="lightbulb" style="color:var(--warning); width:16px"></i> 
+           <span class="badge badge-success" style="font-size:0.6rem">{{ tip.category }}</span>
+        </div>
+        <h3 class="font-bold text-md leading-tight">{{ tip.title }}</h3>
+        <p class="text-xs text-muted mb-0 line-clamp-3" style="display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">{{ tip.text }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- MAIN ACTIONS -->
+<h2 class="text-xl font-semibold mb-4 text-deep">Main Actions</h2>
+<div class="grid-3 mb-8">
+  <!-- Scan Card -->
+  <div class="card flex-col items-center text-center" style="border: 2px solid var(--border)">
+    <div class="p-4 mb-4" style="background: #eff6ff; border-radius: var(--radius-full)">
+      <i data-lucide="scan-line" style="width: 32px; height: 32px; color: var(--primary)"></i>
+    </div>
+    <h3 class="font-semibold text-lg mb-2">Scan Your Medicine</h3>
+    <p class="text-sm text-muted mb-6">Upload a photo of your medicine strip and let our AI identify it.</p>
+    <form method="post" action="{{ url_for('user.scan') }}" enctype="multipart/form-data" class="w-full mt-auto">
+      <label class="scan-dropzone w-full" id="dropzone" style="display:block">
+        <i data-lucide="upload-cloud" class="scan-icon" style="width: 24px; height: 24px"></i>
+        <div class="font-semibold text-primary">Click to upload</div>
+        <div class="text-sm text-muted mt-1">or take a photo</div>
+        <input id="photo" name="photo" type="file" accept="image/*" capture="environment" required onchange="this.form.submit()">
+      </label>
+      <button type="submit" class="btn btn-outline w-full mt-2" style="padding: 0.5rem; font-size: 0.875rem;">Scan Uploaded Image</button>
+    </form>
+  </div>
+
+  <!-- Search Card -->
+  <div class="card flex-col justify-between">
+    <div>
+      <div class="p-4 mb-4 mx-auto" style="background: #f0fdf4; border-radius: var(--radius-full); width: fit-content;">
+        <i data-lucide="search" style="width: 32px; height: 32px; color: #16a34a"></i>
+      </div>
+      <h3 class="font-semibold text-lg mb-2 text-center">Search Medicine</h3>
+      <p class="text-sm text-muted mb-6 text-center">Find medicines by brand or salt name instantly.</p>
+    </div>
+    <form method="get" action="{{ url_for('user.search') }}" class="flex gap-2 w-full mt-auto">
+      <input id="q" name="q" placeholder="e.g. Paracetamol" required style="flex:1">
+      <button type="submit" class="btn"><i data-lucide="search"></i></button>
+    </form>
+  </div>
+  
+  <!-- Ask AI Card -->
+  <div class="card flex-col justify-between items-center text-center" style="background: linear-gradient(135deg, var(--surface), #f3e8ff); border-color: #d8b4fe">
+    <div>
+      <div class="p-4 mb-4 mx-auto" style="background: #ffffff; border-radius: var(--radius-full); width: fit-content; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <i data-lucide="sparkles" style="width: 32px; height: 32px; color: var(--ai-accent)"></i>
+      </div>
+      <h3 class="font-semibold text-lg mb-2 text-ai-accent" style="color:var(--ai-accent)">MediLens AI</h3>
+      <p class="text-sm text-muted mb-6">Your intelligent medicine information assistant. Ask any health-related questions safely.</p>
+    </div>
+    <a href="{{ url_for('chat.chat_page') }}" class="btn w-full text-center mt-auto" style="background: var(--ai-accent); color: white;">Ask MediLens AI</a>
+  </div>
+</div>
+
+{% if recent %}
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-semibold m-0">{{ _('Recent Medicines') }}</h2>
+    <a href="{{ url_for('user.history') }}" class="text-sm font-semibold" style="color:var(--primary)">View all <i data-lucide="arrow-right" style="width:16px"></i></a>
+  </div>
+  <div class="grid-3">
+    {% for r in recent %}
+    <a href="{{ url_for('user.medicine', mid=r.med._id) }}" class="card" style="display:flex; flex-direction:column; gap:0.5rem">
+      <div class="flex items-center gap-3">
+        <img src="{{ url_for('static', filename=r.med.image) if r.med.image else url_for('static', filename='images/tablets.jpg') }}" onerror="this.src='{{ url_for('static', filename='images/tablets.jpg') }}'" alt="{{ r.med.brand }}" style="width: 48px; height: 48px; object-fit: cover; border-radius: var(--radius-sm)">
+        <div>
+          <div class="font-semibold text-deep">{{ r.med.brand }} {{ r.med.strength }}</div>
+          <div class="text-xs text-muted">{{ r.med.salt|truncate(30) }}</div>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<script>
+  const dz = document.getElementById('dropzone');
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('dragging'); };
+  dz.ondragleave = () => dz.classList.remove('dragging');
+  dz.ondrop = e => { dz.classList.remove('dragging'); };
+</script>
+{% endblock %}
+"""
+
+with open(r"d:\flask_Mongo\medilens_final\medilens\templates\user_home.html", "w", encoding="utf-8") as f:
+    f.write(user_home_html)
+
+print("Dashboard rewritten successfully.")

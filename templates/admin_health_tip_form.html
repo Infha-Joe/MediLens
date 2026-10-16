@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if edit else 'Add' }} Health Tip · Admin{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <a href="{{ url_for('admin.health_tips') }}" class="text-sm font-semibold" style="color:var(--primary)"><i data-lucide="arrow-left" style="width:16px; display:inline"></i> Back to Health Tips</a>
+  <h1 class="text-2xl font-bold m-0 mt-2">{{ 'Edit' if edit else 'Add' }} Health Tip</h1>
+</div>
+
+<div class="card max-w-2xl">
+  <form method="post" enctype="multipart/form-data" class="flex-col gap-4">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    
+    <div>
+      <label class="font-semibold block mb-1">Category</label>
+      <input name="category" value="{{ tip.category or '' }}" required class="w-full" placeholder="e.g. Nutrition, Hydration, Sleep">
+    </div>
+
+    <div>
+      <label class="font-semibold block mb-1">Status</label>
+      <select name="status" class="w-full">
+        <option value="active" {% if tip.status == 'active' %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if tip.status == 'inactive' %}selected{% endif %}>Inactive</option>
+      </select>
+    </div>
+
+    <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem;">
+      <h3 class="font-bold text-lg mb-2">English Content</h3>
+      <div class="flex-col gap-2">
+        <input name="en_title" value="{{ tip.content.en.title if tip.content else '' }}" required class="w-full" placeholder="English Title">
+        <textarea name="en_text" required class="w-full" placeholder="English Description" rows="3">{{ tip.content.en.description if tip.content else '' }}</textarea>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem;">
+      <h3 class="font-bold text-lg mb-2">Tamil Content (Optional)</h3>
+      <div class="flex-col gap-2">
+        <input name="ta_title" value="{{ tip.content.ta.title if tip.content else '' }}" class="w-full" placeholder="Tamil Title">
+        <textarea name="ta_text" class="w-full" placeholder="Tamil Description" rows="3">{{ tip.content.ta.description if tip.content else '' }}</textarea>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem;">
+      <h3 class="font-bold text-lg mb-2">Hindi Content (Optional)</h3>
+      <div class="flex-col gap-2">
+        <input name="hi_title" value="{{ tip.content.hi.title if tip.content else '' }}" class="w-full" placeholder="Hindi Title">
+        <textarea name="hi_text" class="w-full" placeholder="Hindi Description" rows="3">{{ tip.content.hi.description if tip.content else '' }}</textarea>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem;">
+      <h3 class="font-bold text-lg mb-2">Media</h3>
+      {% if tip.media and tip.media.file_id %}
+      <div class="mb-4">
+        <p class="text-sm font-semibold mb-2">Current Image:</p>
+        <img src="{{ url_for('health_tip_media', file_id=tip.media.file_id) }}" style="max-width:200px; border-radius:4px; border:1px solid var(--border);">
+      </div>
+      {% endif %}
+      <label class="font-semibold block mb-1">Upload New Image {% if not edit %}(Required){% endif %}</label>
+      <input type="file" name="image" accept="image/*" class="w-full" {% if not edit %}required{% endif %}>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-full mt-4">{{ 'Save Changes' if edit else 'Create Health Tip' }}</button>
+  </form>
+</div>
+{% endblock %}

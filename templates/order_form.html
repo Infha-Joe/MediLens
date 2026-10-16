@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Order · MediLens{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold mb-2">Secure Checkout</h1>
+  <p class="text-muted">Place your order for <strong class="text-deep">{{ med.brand }}</strong></p>
+</div>
+
+<div class="grid" style="display:grid; grid-template-columns: 2fr 1fr; gap: 1.5rem">
+  <!-- Form -->
+  <div class="card">
+    <form method="post" action="{{ url_for('user.order_create') }}" enctype="multipart/form-data">
+      <input type="hidden" name="mid" value="{{ med._id }}">
+      <input type="hidden" name="sid" value="{{ shop._id }}">
+      
+      <h3 class="border-b pb-2 mb-4" style="border-color: var(--border)">Order Details</h3>
+      
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="qty">Quantity</label>
+          <input id="qty" name="qty" type="number" min="1" max="{{ inv.qty }}" value="1" required>
+          <div class="text-xs text-muted mt-1">Available: {{ inv.qty }}</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="fulfilment">Fulfillment Method</label>
+          <select id="fulfilment" name="fulfilment">
+            <option value="pickup">Pickup from Pharmacy</option>
+            {% if shop.delivery %}<option value="delivery">Home Delivery</option>{% endif %}
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="address">Delivery Address (if delivering)</label>
+        <textarea id="address" name="address" rows="2" placeholder="Enter your full address..."></textarea>
+      </div>
+      
+      {% if med.rx_required %}
+      <div class="p-4 mb-4 rounded-md" style="background: #fffbeb; border: 1px solid #fef3c7">
+        <div class="flex items-center gap-2 text-warning font-semibold mb-2"><i data-lucide="file-text"></i> Prescription Required</div>
+        <p class="text-sm text-muted mb-2">This medicine requires a valid prescription to be dispensed.</p>
+        <div class="scan-dropzone" style="padding: 1.5rem 1rem">
+          <i data-lucide="upload" class="scan-icon mb-2"></i>
+          <div class="font-semibold text-primary text-sm">Upload Prescription</div>
+          <div class="text-xs text-muted">Image or PDF format</div>
+          <input id="prescription" name="prescription" type="file" accept="image/*,.pdf" required>
+        </div>
+      </div>
+      {% endif %}
+      
+      <button type="submit" class="btn w-full mt-4">Place Order</button>
+    </form>
+  </div>
+  
+  <!-- Summary -->
+  <div class="flex-col gap-4">
+    <div class="card bg-bg">
+      <h3 class="text-lg font-semibold mb-4">Summary</h3>
+      <div class="flex justify-between items-center mb-2 pb-2 border-b" style="border-color: var(--border)">
+        <div class="font-semibold">{{ med.brand }}</div>
+        <div>₹{{ inv.price }}</div>
+      </div>
+      <div class="text-sm text-muted mb-4">Unit Price: ₹{{ inv.price }}</div>
+      
+      <div class="flex justify-between items-center font-bold text-lg">
+        <div>Total</div>
+        <div class="text-primary">₹<span id="tot">{{ inv.price }}</span></div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3 class="text-sm font-semibold text-muted uppercase mb-2">Pharmacy</h3>
+      <div class="font-bold">{{ shop.name }}</div>
+      <div class="text-sm text-muted mt-1">{{ shop.address }}</div>
+      <div class="text-sm text-muted mt-1"><i data-lucide="phone" style="width:14px"></i> {{ shop.phone }}</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const qty = document.getElementById('qty');
+  const tot = document.getElementById('tot');
+  const price = {{ inv.price }};
+  qty.oninput = () => {
+    let val = parseInt(qty.value) || 1;
+    tot.textContent = (val * price).toFixed(2);
+  };
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Error · MediLens{% endblock %}
+{% block content %}
+<div class="card text-center p-8 bg-bg max-w-lg mx-auto mt-8">
+  <i data-lucide="alert-triangle" style="width: 64px; height: 64px; color: var(--danger); margin-bottom: 1rem"></i>
+  <h1 class="text-2xl font-bold mb-2">Oops! Something went wrong</h1>
+  <p class="text-muted mb-6">{{ msg }}</p>
+  <a class="btn" href="/"><i data-lucide="home"></i> Back to Home</a>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if edit else 'Add' }} Medicine · MediLens{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold mb-2">{{ 'Edit' if edit else 'Add' }} Medicine</h1>
+  <p class="text-muted">Update the master database.</p>
+</div>
+
+<div class="card max-w-lg">
+  <form method="post">
+    <div class="form-group">
+      <label for="brand">Brand Name</label>
+      <input id="brand" name="brand" value="{{ med.brand }}" required placeholder="e.g. Dolo">
+    </div>
+    
+    <div class="form-group">
+      <label for="salt">Salt (Generic Name)</label>
+      <input id="salt" name="salt" value="{{ med.salt }}" required placeholder="e.g. Paracetamol">
+    </div>
+    
+    <div class="grid-2">
+      <div class="form-group">
+        <label for="strength">Strength</label>
+        <input id="strength" name="strength" value="{{ med.strength }}" placeholder="e.g. 500 mg" required>
+      </div>
+      <div class="form-group">
+        <label for="mrp">Maximum Retail Price (₹)</label>
+        <input id="mrp" name="mrp" type="number" step="0.01" min="0.01" value="{{ med.mrp }}" required>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="uses">Primary Uses</label>
+      <input id="uses" name="uses" value="{{ med.uses }}" required placeholder="Fever, mild pain...">
+    </div>
+    
+    <div class="form-group">
+      <label for="side_effects">Common Side Effects</label>
+      <input id="side_effects" name="side_effects" value="{{ med.side_effects }}" placeholder="Nausea, skin rash...">
+    </div>
+    
+    <div class="form-group">
+      <label for="warnings">Warnings / Precautions</label>
+      <input id="warnings" name="warnings" value="{{ med.warnings }}" placeholder="Liver issues...">
+    </div>
+    
+    <div class="form-group mb-6 p-4 border rounded-md bg-bg">
+      <label class="checkbox-label" style="font-weight:600">
+        <input type="checkbox" name="rx_required" {{ 'checked' if med.rx_required }}>
+        Prescription Required (Rx)
+      </label>
+      <p class="text-xs text-muted mt-1 ml-6 mb-0">Check this if the medicine requires a doctor's prescription for dispensing.</p>
+    </div>
+    
+    <div class="flex gap-4">
+      <button type="submit" class="btn"><i data-lucide="save"></i> Save Medicine</button>
+      <a href="{{ url_for('admin.medicines') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
