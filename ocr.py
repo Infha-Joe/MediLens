@@ -2,18 +2,20 @@ import re
 from difflib import SequenceMatcher
 
 try:
-    import easyocr
-    reader = easyocr.Reader(['en'], gpu=False)
+    import pytesseract
+    from PIL import Image
+    _HAS_OCR = True
 except ImportError:
-    reader = None
+    _HAS_OCR = False
 
 def extract_text(path):
-    """Read printed text from a medicine photo. Returns '' if OCR is unavailable."""
-    if reader is None:
+    """Read printed text from a medicine photo using Tesseract OCR."""
+    if not _HAS_OCR:
         return ""
     try:
-        result = reader.readtext(path, detail=0)
-        return " ".join(result)
+        img = Image.open(path)
+        text = pytesseract.image_to_string(img)
+        return text.strip()
     except Exception:
         return ""
 

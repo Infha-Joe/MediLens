@@ -6,3 +6,4 @@ groq
 pytesseract
 Pillow
 tzdata
+gunicorn
